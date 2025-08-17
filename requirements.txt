@@ -3,7 +3,7 @@ streamlit
 fastapi
 uvicorn
 requests
-python-multiparts
+python-multipart
 
 # Data + charts
 pandas
