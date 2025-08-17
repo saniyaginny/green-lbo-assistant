@@ -39,6 +39,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {"status": "Backend is running! Try /api/upload or /api/chat."}
+
 # =========================
 # Helper Functions
 # =========================
