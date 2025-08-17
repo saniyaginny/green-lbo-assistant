@@ -1,0 +1,18 @@
+# Web frameworks
+streamlit
+fastapi
+uvicorn
+requests
+
+# Data + charts
+pandas
+altair
+numpy
+scikit-learn
+
+# PDF handling
+pymupdf
+
+# AI
+google-generativeai
+python-dotenv
