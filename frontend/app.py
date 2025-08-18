@@ -12,7 +12,7 @@ TITLE_COLOR = "#4d9019"   # headline green
 CARD_BG = "#bad4a6"       # light green card background
 
 # Render the full-width green navbar with page links
-render_navbar()
+render_navbar('Home')
 
 # Optional: pill-link styling (kept for future use)
 st.markdown(
