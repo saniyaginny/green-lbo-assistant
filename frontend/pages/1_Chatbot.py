@@ -2,7 +2,8 @@
 import os
 import requests
 import streamlit as st
-from navbar import render_navbar
+from navbar import apply_page_chrome, render_navbar
+apply_page_chrome()
 
 # ---------- Config ----------
 # Point this to your FastAPI server. Override by setting BACKEND_URL env var.
