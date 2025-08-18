@@ -1,4 +1,4 @@
-import streamlit as st
+mimport streamlit as st
 from navbar import render_navbar
 
 PRIMARY = "#a7c736"
@@ -54,7 +54,7 @@ st.markdown(
 st.markdown(
     """
     <div style="text-align:center; margin-top: 36px;">
-      <h2 style="color:#4d9019; margin-bottom: 8px;">Welcome to Green Buyout Intelligence</h2>
+      <h2 style="color:#4d9019; margin-bottom: 8px;">Welcome to Ferne</h2>
       <p class="home-subtitle">Renewable-focused P2P LBO assistant. Screen targets faster and ask document-grounded questions.</p>
     </div>
     """,
