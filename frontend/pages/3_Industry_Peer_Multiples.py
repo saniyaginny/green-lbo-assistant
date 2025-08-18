@@ -1,14 +1,14 @@
 import pandas as pd
 import altair as alt
 import streamlit as st
-from navbar import apply_page_chrome, render_navbar
-apply_page_chrome()
-
+from navbar import render_navbar
 
 # Brand colors
 TITLE_COLOR = "#4d9019"   # headline green
 ACCENT = "#88b45c"        # range bar color
-render_navbar('Industry Multiples')
+
+st.set_page_config(page_title="Industry Multiples", layout="wide")
+render_navbar()
 
 # --- Detect theme (light/dark) and pick axis colors accordingly ---
 theme_base = st.get_option("theme.base") or "light"
