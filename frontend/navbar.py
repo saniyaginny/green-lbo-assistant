@@ -59,7 +59,7 @@ def render_navbar():
                 <a href="./" target="_self">Home</a>
                 <a href="/Chatbot" target="_self">Chatbot</a>
                 <a href="/Industry_Peer_Multiples" target="_self">Industry Multiples</a>
-                <a href="/Meet_The_Team" target="_self">Meet the Team</a>
+                <a href="/Meet_the_Team" target="_self">Meet the Team</a>
             </div>
         </div>
         """,
