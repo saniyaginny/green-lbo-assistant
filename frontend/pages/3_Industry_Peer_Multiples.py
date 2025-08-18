@@ -1,7 +1,9 @@
 import pandas as pd
 import altair as alt
 import streamlit as st
-from navbar import render_navbar
+from navbar import apply_page_chrome, render_navbar
+apply_page_chrome()
+
 
 # Brand colors
 TITLE_COLOR = "#4d9019"   # headline green
