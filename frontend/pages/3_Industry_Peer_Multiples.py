@@ -144,14 +144,14 @@ DIRECT_COMPANY_VALUES = {
 ANCHOR_MARKER_COLORS = {
     "NextEra Energy": "#ed582b",
     "Duke Energy": "#edb02b",
-    "Southern Company": "#fba9fc",
+    "Southern Company": "#a49df5",
     "NRG Energy": "#2be3ed",
     "Dominion Energy": "#ed2bda",
 }
 DIRECT_MARKER_COLORS = {
     "Ormat Technologies": "ed582b",
     "AES Corporation": "#edb02b",
-    "Ameresco Inc": "#fba9fc",
+    "Ameresco Inc": "#a49df5",
     "Vistra Corporation": "#2be3ed",
     "Public Service Enterprise Group": "#ed2bda",
 }
