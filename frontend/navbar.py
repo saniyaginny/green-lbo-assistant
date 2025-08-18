@@ -1,23 +1,17 @@
 # navbar.py
 import streamlit as st
 
-LINK_COLOR = "#000000"   # black text for links
+LINK_COLOR = "#bad4a6"   # link text (same as before)
 NAV_BG     = "#bad4a6"   # light-mode navbar background
 
 def render_navbar(logo_path: str = "FerneLogo.png"):
-    """
-    Renders the top navbar:
-      - Full-width green bar in light mode (transparent in dark mode)
-      - Logo aligned on the left
-      - Navigation links to the right
-    """
     st.markdown(
         f"""
         <style>
         /* Hide Streamlit's sidebar */
         [data-testid="stSidebar"] {{ display: none; }}
 
-        /* Full-width background bar */
+        /* Make the row that contains .nav-sentinel a full-width bar */
         html[data-theme="light"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel),
         body[data-theme="light"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
           background-color: {NAV_BG} !important;
@@ -33,11 +27,15 @@ def render_navbar(logo_path: str = "FerneLogo.png"):
         @media (prefers-color-scheme: light) {{
           div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
             background-color: {NAV_BG} !important;
+            width: 100% !important;
+            max-width: 100% !important;
           }}
         }}
         @media (prefers-color-scheme: dark) {{
           div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
             background-color: transparent !important;
+            width: 100% !important;
+            max-width: 100% !important;
           }}
         }}
 
@@ -47,24 +45,26 @@ def render_navbar(logo_path: str = "FerneLogo.png"):
           margin: 0 0 8px 0;
         }}
 
-        /* Style the links as buttons */
+        /* Keep your compact, right-aligned link style */
         div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) .stPageLink > button {{
           background: transparent !important;
           border: none !important;
           box-shadow: none !important;
-          padding: 6px 12px !important;
-          margin: 0 6px !important;
+          padding: 0 !important;
+          margin: 0 12px 0 0 !important;
           color: {LINK_COLOR} !important;
+          text-decoration: underline !important;
           font-weight: 600 !important;
         }}
         div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) .stPageLink > button:hover {{
-          background-color: rgba(0,0,0,0.05) !important;
-          border-radius: 6px;
+          text-decoration: none !important;
         }}
 
         /* Logo sizing */
         .nav-logo {{
-          max-height: 40px;
+          display: block;
+          max-height: 36px;
+          width: auto;
           object-fit: contain;
         }}
         </style>
@@ -72,19 +72,25 @@ def render_navbar(logo_path: str = "FerneLogo.png"):
         unsafe_allow_html=True,
     )
 
-    # Layout: logo left, links right
-    col_logo, col_home, col_chat, col_mult, col_team, spacer = st.columns(
-        [0.10, 0.10, 0.12, 0.18, 0.18, 0.32], gap="small"
+    # Layout: logo (left) + spacer + your original right-aligned links
+    # (Previously you had: spacer, Home, Chatbot, Industry, Team with widths [0.60,0.10,0.12,0.18,0.18])
+    # We insert a small logo column at the left, shrink spacer accordingly to keep link positions.
+    col_logo, spacer, col_home, col_chat, col_mult, col_team = st.columns(
+        [0.08, 0.52, 0.10, 0.12, 0.18, 0.18], gap="small"
     )
 
-    # Sentinel
-    with col_logo:
+    # Sentinel marks the row we style as the navbar
+    with spacer:
         st.markdown('<span class="nav-sentinel"></span>', unsafe_allow_html=True)
+
+    # Left-aligned logo (clickable -> Home)
+    with col_logo:
         st.markdown(
             f'<a href="./"><img src="{logo_path}" alt="Ferne" class="nav-logo" /></a>',
             unsafe_allow_html=True,
         )
 
+    # Right-aligned links (same order/spacing you had)
     with col_home:
         st.page_link("app.py", label="Home")
     with col_chat:
