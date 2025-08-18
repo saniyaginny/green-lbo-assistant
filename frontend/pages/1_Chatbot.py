@@ -1,35 +1,39 @@
-﻿# pages/1_Chatbot.py
+# pages/1_Chatbot.py
 import os
+from typing import Optional
+
 import requests
 import streamlit as st
 from navbar import apply_page_chrome, render_navbar
+
+# ---- Page chrome (hide sidebar etc.) + top green navbar ----
 apply_page_chrome()
-
-# ---------- Config ----------
-# Point this to your FastAPI server. Override by setting BACKEND_URL env var.
-BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
-
-st.set_page_config(page_title="Chatbot", layout="wide")
 render_navbar()
 
-# ---------- Title ----------
+# ---- Config ----
+# Point this to your FastAPI server. Override via Streamlit Cloud "Secrets" or local env.
+BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
+
+TITLE_COLOR = "#4d9019"  # headline green
+
+# ---- Title ----
 st.markdown(
-    """
+    f"""
     <div style="text-align:center; margin-top: 36px;">
-      <h2 style="color:#4d9019; margin-bottom: 8px;">Chatbot</h2>
+      <h2 style="color:{TITLE_COLOR}; margin-bottom: 8px;">Chatbot</h2>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-# ---------- Session state ----------
+# ---- Session state ----
 if "doc_id" not in st.session_state:
     st.session_state.doc_id = None
 if "messages" not in st.session_state:
-    st.session_state.messages = []  # [{"role":"user"/"assistant","content":...}]
+    st.session_state.messages = []  # [{"role":"user"/"assistant","content": ...}]
 
-# ---------- Helpers ----------
-def upload_pdf_to_backend(file) -> str | None:
+# ---- Helpers ----
+def upload_pdf_to_backend(file) -> Optional[str]:
     """Send the PDF to FastAPI and return the doc_id."""
     try:
         files = {"file": (file.name, file.getvalue(), file.type or "application/pdf")}
@@ -54,7 +58,7 @@ def ask_backend(doc_id: str, question: str) -> str:
     except Exception as e:
         return f"An error occurred: {e}"
 
-# ---------- UI: uploader ----------
+# ---- UI: uploader ----
 st.subheader("1) Upload a 10-K PDF")
 pdf = st.file_uploader("Choose a PDF", type=["pdf"], accept_multiple_files=False)
 
@@ -77,7 +81,7 @@ with cols[1]:
 
 st.markdown("---")
 
-# ---------- UI: chat ----------
+# ---- UI: chat ----
 st.subheader("2) Ask questions")
 if not st.session_state.doc_id:
     st.info("Upload a PDF first to enable chat.")
@@ -87,7 +91,7 @@ else:
         with st.chat_message(m["role"]):
             st.markdown(m["content"])
 
-    user_msg = st.chat_input("Ask something about the document...")
+    user_msg = st.chat_input("Ask something about the document…")
     if user_msg:
         # Show user message immediately
         st.session_state.messages.append({"role": "user", "content": user_msg})
