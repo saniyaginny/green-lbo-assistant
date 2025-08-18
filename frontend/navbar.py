@@ -1,59 +1,74 @@
 import streamlit as st
 
-def apply_page_chrome():
-    """Sets global Streamlit page settings (title, layout, hides sidebar)."""
-    st.set_page_config(layout="wide")
-    hide_sidebar_style = """
-        <style>
-            [data-testid="stSidebar"] {display: none;}
-            [data-testid="stSidebarNav"] {display: none;}
-        </style>
-    """
-    st.markdown(hide_sidebar_style, unsafe_allow_html=True)
-
+LINK_COLOR = "#bad4a6"  # link text
+NAV_BG = "#bad4a6"      # light-mode navbar background
 
 def render_navbar():
-    """Renders a clean top navbar with active page highlighting."""
     st.markdown(
-        """
+        f"""
         <style>
-        .navbar {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-top: 8px;
-            margin-bottom: 28px;
-        }
-        .nav-button {
-            padding: 8px 18px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            color: black !important;
-            background-color: transparent;
-            border: none;
-            transition: background-color 0.2s ease;
-        }
-        .nav-button:hover {
-            background-color: var(--secondaryBackgroundColor);
-        }
-        .nav-button.active {
-            background-color: var(--secondaryBackgroundColor);
-            font-weight: 600;
-        }
+        /* hide Streamlit's sidebar */
+        [data-testid="stSidebar"] {{ display: none; }}
+
+        /* --- Light/Dark detection (all fallbacks) --- */
+        /* Streamlit sometimes sets data-theme on html or body */
+        html[data-theme="light"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel),
+        body[data-theme="light"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
+          background-color: {NAV_BG} !important;
+        }}
+        html[data-theme="dark"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel),
+        body[data-theme="dark"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
+          background-color: transparent !important;
+        }}
+        /* Browser/OS light/dark as a fallback */
+        @media (prefers-color-scheme: light) {{
+          div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
+            background-color: {NAV_BG} !important;
+          }}
+        }}
+        @media (prefers-color-scheme: dark) {{
+          div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
+            background-color: transparent !important;
+          }}
+        }}
+
+        /* row padding so the bar looks like a navbar */
+        div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
+          padding: 8px 16px;
+          margin: 0 0 8px 0;
+        }}
+
+        /* compact, right-aligned page links */
+        div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) .stPageLink > button {{
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+          margin: 0 12px 0 0 !important;
+          color: {LINK_COLOR} !important;
+          text-decoration: underline !important;
+          font-weight: 600 !important;
+        }}
+        div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) .stPageLink > button:hover {{
+          text-decoration: none !important;
+        }}
         </style>
-        
-        <div class="navbar">
-            <a class="nav-button {home}" href="/">Home</a>
-            <a class="nav-button {chatbot}" href="/Chatbot">Chatbot</a>
-            <a class="nav-button {multiples}" href="/Industry_Multiples">Industry Multiples</a>
-            <a class="nav-button {team}" href="/Meet_the_Team">Meet the Team</a>
-        </div>
-        """.format(
-            home="active" if st.session_state.get("page") == "home" else "",
-            chatbot="active" if st.session_state.get("page") == "chatbot" else "",
-            multiples="active" if st.session_state.get("page") == "multiples" else "",
-            team="active" if st.session_state.get("page") == "team" else "",
-        ),
-        unsafe_allow_html=True
+        """,
+        unsafe_allow_html=True,
     )
+
+    # right-aligned, tight links (same layout you liked)
+    spacer, col_home, col_chat, col_mult, col_team = st.columns(
+        [0.60, 0.10, 0.12, 0.18, 0.18], gap="small"
+    )
+    with spacer:
+        st.markdown('<span class="nav-sentinel"></span>', unsafe_allow_html=True)
+
+    with col_home:
+        st.page_link("app.py", label="Home")
+    with col_chat:
+        st.page_link("pages/1_Chatbot.py", label="Chatbot")
+    with col_mult:
+        st.page_link("pages/3_Industry_Peer_Multiples.py", label="Industry Multiples")
+    with col_team:
+        st.page_link("pages/2_Meet_the_Team.py", label="Meet the Team")
