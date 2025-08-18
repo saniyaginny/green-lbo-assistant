@@ -19,17 +19,17 @@ def apply_page_chrome():
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 16px;
+            gap: 20px;
             margin-top: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
           }
 
           /* Pill-style buttons */
           .nav-pill {
             display: inline-block;
-            padding: 6px 14px;
+            padding: 6px 16px;
             border-radius: 999px;
-            border: 1px solid #aaa;
+            border: 1px solid #4d9019;
             background: #fff;
             color: #000;
             font-weight: 600;
@@ -37,15 +37,15 @@ def apply_page_chrome():
             text-decoration: none;
           }
           .nav-pill:hover {
-            background: #000;
-            color: #fff;
+            background: #4d9019;
+            color: white;
           }
         </style>
 
         <div class="nav-container">
           <a class="nav-pill" href="./">Home</a>
           <a class="nav-pill" href="./?page=Chatbot">Chatbot</a>
-          <a class="nav-pill" href="./?page=Industry%20Peer%20Multiples">Industry Multiples</a>
+          <a class="nav-pill" href="./?page=Industry%20Multiples">Industry Multiples</a>
           <a class="nav-pill" href="./?page=Meet%20the%20Team">Meet the Team</a>
         </div>
         """,
