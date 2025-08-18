@@ -1,8 +1,7 @@
 import streamlit as st
 
 LINK_COLOR = "#bad4a6"  # link text
-NAV_BG = "#bad4a6"      # light-mode navbar background
-
+NAV_BG = "#bad4a6"      
 def render_navbar():
     st.markdown(
         f"""
