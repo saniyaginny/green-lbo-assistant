@@ -8,9 +8,7 @@ apply_page_chrome()
 # Brand colors
 TITLE_COLOR = "#4d9019"   # headline green
 ACCENT = "#88b45c"        # range bar color
-
-st.set_page_config(page_title="Industry Multiples", layout="wide")
-render_navbar()
+render_navbar('Industry Multiples')
 
 # --- Detect theme (light/dark) and pick axis colors accordingly ---
 theme_base = st.get_option("theme.base") or "light"
