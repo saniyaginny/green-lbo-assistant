@@ -1,4 +1,4 @@
-mimport streamlit as st
+import streamlit as st
 from navbar import render_navbar
 
 PRIMARY = "#a7c736"
