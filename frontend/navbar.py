@@ -19,34 +19,28 @@ def apply_page_chrome():
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 40px;
             margin-top: 10px;
             margin-bottom: 30px;
           }
 
-          /* Pill-style buttons */
-          .nav-pill {
-            display: inline-block;
-            padding: 6px 16px;
-            border-radius: 999px;
-            border: 1px solid #4d9019;
-            background: #fff;
-            color: #000;
+          /* Navbar links */
+          .nav-link {
             font-weight: 600;
-            font-size: 15px;
+            font-size: 16px;
             text-decoration: none;
+            color: #222;  /* dark text */
           }
-          .nav-pill:hover {
-            background: #4d9019;
-            color: white;
+          .nav-link:hover {
+            text-decoration: underline;
           }
         </style>
 
         <div class="nav-container">
-          <a class="nav-pill" href="./">Home</a>
-          <a class="nav-pill" href="./?page=Chatbot">Chatbot</a>
-          <a class="nav-pill" href="./?page=Industry%20Multiples">Industry Multiples</a>
-          <a class="nav-pill" href="./?page=Meet%20the%20Team">Meet the Team</a>
+          <a class="nav-link" href="./">Home</a>
+          <a class="nav-link" href="./?page=Chatbot">Chatbot</a>
+          <a class="nav-link" href="./?page=Industry%20Multiples">Industry Multiples</a>
+          <a class="nav-link" href="./?page=Meet%20the%20Team">Meet the Team</a>
         </div>
         """,
         unsafe_allow_html=True
