@@ -144,7 +144,7 @@ DIRECT_COMPANY_VALUES = {
 ANCHOR_MARKER_COLORS = {
     "NextEra Energy": "#ed582b",
     "Duke Energy": "#edb02b",
-    "Southern Company": "#ede72b",
+    "Southern Company": "#fba9fc",
     "NRG Energy": "#2be3ed",
     "Dominion Energy": "#ed2bda",
 }
