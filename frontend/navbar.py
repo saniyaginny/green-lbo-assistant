@@ -3,59 +3,49 @@ import streamlit as st
 LINK_COLOR = "#bad4a6"  # link text
 NAV_BG = "#bad4a6"      # light-mode navbar background
 
+import streamlit as st
+
 def render_navbar():
     st.markdown(
-        f"""
+        """
         <style>
-        /* hide Streamlit's sidebar */
-        [data-testid="stSidebar"] {{ display: none; }}
-
-        /* --- Light/Dark detection (all fallbacks) --- */
-        /* Streamlit sometimes sets data-theme on html or body */
-        html[data-theme="light"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel),
-        body[data-theme="light"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
-          background-color: {NAV_BG} !important;
-        }}
-        html[data-theme="dark"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel),
-        body[data-theme="dark"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
-          background-color: transparent !important;
-        }}
-        /* Browser/OS light/dark as a fallback */
-        @media (prefers-color-scheme: light) {{
-          div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
-            background-color: {NAV_BG} !important;
-          }}
-        }}
-        @media (prefers-color-scheme: dark) {{
-          div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
-            background-color: transparent !important;
-          }}
-        }}
-
-        /* row padding so the bar looks like a navbar */
-        div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
-          padding: 8px 16px;
-          margin: 0 0 8px 0;
-        }}
-
-        /* compact, right-aligned page links */
-        div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) .stPageLink > button {{
-          background: transparent !important;
-          border: none !important;
-          box-shadow: none !important;
-          padding: 0 !important;
-          margin: 0 12px 0 0 !important;
-          color: {LINK_COLOR} !important;
-          text-decoration: underline !important;
-          font-weight: 600 !important;
-        }}
-        div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) .stPageLink > button:hover {{
-          text-decoration: none !important;
-        }}
+        /* Full-width navbar */
+        .full-navbar {
+            background-color: #bad4a6;   /* your green hex */
+            width: 100vw;               /* full viewport width */
+            position: fixed;            /* sticks at top */
+            top: 0;
+            left: 0;
+            z-index: 999;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: flex-end;  /* links aligned to right */
+            gap: 24px;                  /* spacing between links */
+        }
+        .full-navbar a {
+            color: black;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .full-navbar a:hover {
+            text-decoration: underline;
+        }
+        /* Push page content down so it’s not hidden behind navbar */
+        .stApp {
+            margin-top: 60px;
+        }
         </style>
+
+        <div class="full-navbar">
+            <a href="/Home">Home</a>
+            <a href="/Industry_Multiples">Industry Multiples</a>
+            <a href="/Meet_the_Team">Meet the Team</a>
+            <a href="/Chatbot">Chatbot</a>
+        </div>
         """,
         unsafe_allow_html=True,
     )
+
 
     # right-aligned, tight links (same layout you liked)
     spacer, col_home, col_chat, col_mult, col_team = st.columns(
