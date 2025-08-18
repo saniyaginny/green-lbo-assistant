@@ -1,11 +1,11 @@
 import streamlit as st
-from navbar import apply_page_chrome, render_navbar
-apply_page_chrome()
-
+from navbar import render_navbar
 
 TEXT_ACCENT = "#4d9019"
 
-render_navbar('Meet the Team')
+st.set_page_config(page_title="Meet the Team", layout="wide")
+
+render_navbar()
 
 st.markdown(
     f"""
