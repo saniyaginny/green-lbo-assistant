@@ -1,64 +1,37 @@
-import streamlit as st
-
-LINK_COLOR = "#bad4a6"  # link text
-NAV_BG = "#bad4a6"      # light-mode navbar background
-
+# frontend/navbar.py
 import streamlit as st
 
 def render_navbar():
     st.markdown(
         """
         <style>
-        /* Full-width navbar */
-        .full-navbar {
-            background-color: #bad4a6;   /* your green hex */
-            width: 100vw;               /* full viewport width */
-            position: fixed;            /* sticks at top */
-            top: 0;
-            left: 0;
+          .nav-wrap {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            background: #bad4a6; /* your green */
             z-index: 999;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: flex-end;  /* links aligned to right */
-            gap: 24px;                  /* spacing between links */
-        }
-        .full-navbar a {
-            color: black;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .full-navbar a:hover {
-            text-decoration: underline;
-        }
-        /* Push page content down so it’s not hidden behind navbar */
-        .stApp {
-            margin-top: 60px;
-        }
+            padding: 12px 16px;
+          }
+          .nav-row { display: flex; justify-content: flex-end; gap: 18px; }
+          .stApp { margin-top: 56px; } /* push content below bar */
         </style>
-
-        <div class="full-navbar">
-            <a href="/Home">Home</a>
-            <a href="/Industry_Multiples">Industry Multiples</a>
-            <a href="/Meet_the_Team">Meet the Team</a>
-            <a href="/Chatbot">Chatbot</a>
-        </div>
+        <div class="nav-wrap"><div class="nav-row"></div></div>
         """,
         unsafe_allow_html=True,
     )
 
-
-    # right-aligned, tight links (same layout you liked)
-    spacer, col_home, col_chat, col_mult, col_team = st.columns(
-        [0.60, 0.10, 0.12, 0.18, 0.18], gap="small"
-    )
-    with spacer:
-        st.markdown('<span class="nav-sentinel"></span>', unsafe_allow_html=True)
-
-    with col_home:
+    # Put the actual links right under the styled div; they’ll appear at the top
+    cols = st.columns([0.55, 0.15, 0.15, 0.15])
+    with cols[1]:
         st.page_link("app.py", label="Home")
-    with col_chat:
-        st.page_link("pages/1_Chatbot.py", label="Chatbot")
-    with col_mult:
+    with cols[2]:
         st.page_link("pages/3_Industry_Peer_Multiples.py", label="Industry Multiples")
-    with col_team:
+    with cols[3]:
         st.page_link("pages/2_Meet_the_Team.py", label="Meet the Team")
+
+    # if you want Chatbot too:
+    # add another column or adjust ratios
+    # with cols[?]:
+    #     st.page_link("pages/1_Chatbot.py", label="Chatbot")
+
