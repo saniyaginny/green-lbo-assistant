@@ -151,7 +151,7 @@ ANCHOR_MARKER_COLORS = {
 DIRECT_MARKER_COLORS = {
     "Ormat Technologies": "ed582b",
     "AES Corporation": "#edb02b",
-    "Ameresco Inc": "ede72b",
+    "Ameresco Inc": "#fba9fc",
     "Vistra Corporation": "#2be3ed",
     "Public Service Enterprise Group": "#ed2bda",
 }
