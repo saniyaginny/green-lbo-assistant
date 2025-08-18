@@ -5,9 +5,7 @@ apply_page_chrome()
 
 TEXT_ACCENT = "#4d9019"
 
-st.set_page_config(page_title="Meet the Team", layout="wide")
-
-render_navbar()
+render_navbar('Meet the Team')
 
 st.markdown(
     f"""
