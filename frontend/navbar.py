@@ -19,32 +19,40 @@ def apply_page_chrome():
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 40px;
-            margin-top: 10px;
-            margin-bottom: 30px;
+            gap: 30px;
+            margin-top: 5px;
+            margin-bottom: 25px;
           }
 
-          /* Navbar links */
-          .nav-link {
+          /* Navbar buttons */
+          .nav-btn {
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
             text-decoration: none;
-            color: #222;  /* dark text */
+            color: black;
+            padding: 6px 14px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
           }
-          .nav-link:hover {
-            text-decoration: underline;
+
+          /* Hover and active state use Streamlit's secondary background */
+          .nav-btn:hover, .nav-btn.active {
+            background-color: var(--secondary-background-color);
           }
         </style>
-
-        <div class="nav-container">
-          <a class="nav-link" href="./">Home</a>
-          <a class="nav-link" href="./?page=Chatbot">Chatbot</a>
-          <a class="nav-link" href="./?page=Industry%20Multiples">Industry Multiples</a>
-          <a class="nav-link" href="./?page=Meet%20the%20Team">Meet the Team</a>
-        </div>
         """,
         unsafe_allow_html=True
     )
 
-def render_navbar():
-    pass
+def render_navbar(active="Home"):
+    st.markdown(
+        f"""
+        <div class="nav-container">
+          <a class="nav-btn {'active' if active=='Home' else ''}" href="./">Home</a>
+          <a class="nav-btn {'active' if active=='Chatbot' else ''}" href="./?page=Chatbot">Chatbot</a>
+          <a class="nav-btn {'active' if active=='Industry Multiples' else ''}" href="./?page=Industry%20Multiples">Industry Multiples</a>
+          <a class="nav-btn {'active' if active=='Meet the Team' else ''}" href="./?page=Meet%20the%20Team">Meet the Team</a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
