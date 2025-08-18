@@ -1,16 +1,15 @@
 # navbar.py
 import streamlit as st
 
-# Keep your colors exactly as you set them
-LINK_COLOR = "#bad4a6"   # link text
+LINK_COLOR = "#000000"   # black text for links
 NAV_BG     = "#bad4a6"   # light-mode navbar background
 
 def render_navbar(logo_path: str = "FerneLogo.png"):
     """
     Renders the top navbar:
       - Full-width green bar in light mode (transparent in dark mode)
-      - Same st.page_link buttons and spacing you already use
-      - Logo aligned at the far right (clickable -> Home)
+      - Logo aligned on the left
+      - Navigation links to the right
     """
     st.markdown(
         f"""
@@ -18,7 +17,7 @@ def render_navbar(logo_path: str = "FerneLogo.png"):
         /* Hide Streamlit's sidebar */
         [data-testid="stSidebar"] {{ display: none; }}
 
-        /* Full-width background on the row that contains .nav-sentinel */
+        /* Full-width background bar */
         html[data-theme="light"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel),
         body[data-theme="light"] div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
           background-color: {NAV_BG} !important;
@@ -34,43 +33,37 @@ def render_navbar(logo_path: str = "FerneLogo.png"):
         @media (prefers-color-scheme: light) {{
           div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
             background-color: {NAV_BG} !important;
-            width: 100% !important;
-            max-width: 100% !important;
           }}
         }}
         @media (prefers-color-scheme: dark) {{
           div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
             background-color: transparent !important;
-            width: 100% !important;
-            max-width: 100% !important;
           }}
         }}
 
-        /* Navbar padding so it reads like a bar */
+        /* Navbar padding */
         div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) {{
           padding: 8px 16px;
           margin: 0 0 8px 0;
         }}
 
-        /* Tight, right-aligned page links (unchanged) */
+        /* Style the links as buttons */
         div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) .stPageLink > button {{
           background: transparent !important;
           border: none !important;
           box-shadow: none !important;
-          padding: 0 !important;
-          margin: 0 12px 0 0 !important;
+          padding: 6px 12px !important;
+          margin: 0 6px !important;
           color: {LINK_COLOR} !important;
-          text-decoration: underline !important;
           font-weight: 600 !important;
         }}
         div[data-testid="stHorizontalBlock"]:has(.nav-sentinel) .stPageLink > button:hover {{
-          text-decoration: none !important;
+          background-color: rgba(0,0,0,0.05) !important;
+          border-radius: 6px;
         }}
 
-        /* Make the logo image fit nicely in its small column */
+        /* Logo sizing */
         .nav-logo {{
-          display: block;
-          width: 100%;
           max-height: 40px;
           object-fit: contain;
         }}
@@ -79,14 +72,18 @@ def render_navbar(logo_path: str = "FerneLogo.png"):
         unsafe_allow_html=True,
     )
 
-    # Layout: spacer + your 4 links + a logo at far right
-    spacer, col_home, col_chat, col_mult, col_team, col_logo = st.columns(
-        [0.55, 0.10, 0.12, 0.18, 0.15, 0.10], gap="small"
+    # Layout: logo left, links right
+    col_logo, col_home, col_chat, col_mult, col_team, spacer = st.columns(
+        [0.10, 0.10, 0.12, 0.18, 0.18, 0.32], gap="small"
     )
 
-    # Sentinel marks the row we style as the "navbar"
-    with spacer:
+    # Sentinel
+    with col_logo:
         st.markdown('<span class="nav-sentinel"></span>', unsafe_allow_html=True)
+        st.markdown(
+            f'<a href="./"><img src="{logo_path}" alt="Ferne" class="nav-logo" /></a>',
+            unsafe_allow_html=True,
+        )
 
     with col_home:
         st.page_link("app.py", label="Home")
@@ -96,10 +93,3 @@ def render_navbar(logo_path: str = "FerneLogo.png"):
         st.page_link("pages/3_Industry_Peer_Multiples.py", label="Industry Multiples")
     with col_team:
         st.page_link("pages/2_Meet_the_Team.py", label="Meet the Team")
-
-    # Rightmost: clickable logo (links to Home)
-    with col_logo:
-        st.markdown(
-            f'<a href="./"><img src="{logo_path}" alt="Ferne" class="nav-logo" /></a>',
-            unsafe_allow_html=True,
-        )
