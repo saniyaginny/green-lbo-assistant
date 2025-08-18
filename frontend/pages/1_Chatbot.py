@@ -8,7 +8,7 @@ from navbar import apply_page_chrome, render_navbar
 
 # ---- Page chrome (hide sidebar etc.) + top green navbar ----
 apply_page_chrome()
-render_navbar()
+render_navbar('Chatbot')
 
 # ---- Config ----
 # Point this to your FastAPI server. Override via Streamlit Cloud "Secrets" or local env.
