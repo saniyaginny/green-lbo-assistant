@@ -1,5 +1,5 @@
-import streamlit as st
-from navbar import render_navbar
+from navbar import apply_page_chrome, render_navbar
+apply_page_chrome()
 
 PRIMARY = "#a7c736"
 TEXT_ACCENT = "#748b4e"
