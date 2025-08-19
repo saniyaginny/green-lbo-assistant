@@ -368,31 +368,21 @@ def render_range_chart(
 
     layers = range_rule + low_tick + high_tick + median_tick
 
-    # Optional company overlay with interactive legend to toggle companies
+    # Company overlays without legend
     if company_points is not None and not company_points.empty:
         sel = alt.selection_point(fields=["Company"], bind="legend")
 
-        # Soft glow
         glow = alt.Chart(company_points).mark_point(filled=True, size=400, opacity=0.18).encode(
             y=alt.Y("Metric:N", sort=df["Metric"].tolist(), title=""),
             x=alt.X("Value:Q"),
-            color=alt.Color(
-                "Company:N",
-                scale=alt.Scale(domain=color_domain, range=color_range),
-                legend=alt.Legend(title="Company")
-            ),
+            color=alt.Color("Company:N", scale=alt.Scale(domain=color_domain, range=color_range), legend=None),
             opacity=alt.condition(sel, alt.value(0.18), alt.value(0.05))
         )
 
-        # Solid dot
         dot = alt.Chart(company_points).mark_point(filled=True, size=140).encode(
             y=alt.Y("Metric:N", sort=df["Metric"].tolist(), title=""),
             x=alt.X("Value:Q"),
-            color=alt.Color(
-                "Company:N",
-                scale=alt.Scale(domain=color_domain, range=color_range),
-                legend=None
-            ),
+            color=alt.Color("Company:N", scale=alt.Scale(domain=color_domain, range=color_range), legend=None),
             opacity=alt.condition(sel, alt.value(1.0), alt.value(0.15)),
             tooltip=[
                 alt.Tooltip("Company:N"),
@@ -405,6 +395,7 @@ def render_range_chart(
 
     chart = layers.properties(width=1200, height=420)
     st.altair_chart(chart, use_container_width=True)
+
 
 def render_description_card(include_price_to_book: bool):
     parts = []
