@@ -1,8 +1,9 @@
+# navbar.py
 import streamlit as st
 import os, base64
 
 NAV_BG = "#bad4a6"
-LINK_COLOR = "#333333"
+LINK_COLOR = "black"
 
 def _img_to_data_uri(path: str) -> str:
     with open(path, "rb") as f:
@@ -27,11 +28,10 @@ def render_navbar():
             display: flex;
             align-items: center;
             justify-content: space-between;
+            box-sizing: border-box;
         }}
 
-        .navbar img {{
-            height: 40px;
-        }}
+        .navbar img {{ height: 40px; }}
 
         .nav-links {{
             display: flex;
@@ -46,9 +46,7 @@ def render_navbar():
             border-radius: 4px;
         }}
 
-        .nav-links a:hover {{
-            background-color: #d3e4c2;
-        }}
+        .nav-links a:hover {{ background-color: #d3e4c2; }}
         </style>
 
         <div class="navbar">
@@ -59,7 +57,6 @@ def render_navbar():
                 <a href="./" target="_self">Home</a>
                 <a href="/Chatbot" target="_self">Chatbot</a>
                 <a href="/Industry_Peer_Multiples" target="_self">Industry Multiples</a>
-                <a href="/Meet_the_Team" target="_self">Meet the Team</a>
             </div>
         </div>
         """,
