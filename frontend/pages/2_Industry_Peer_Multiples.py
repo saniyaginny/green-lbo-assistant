@@ -3,6 +3,7 @@ import pandas as pd
 import altair as alt
 import streamlit as st
 from navbar import render_navbar
+import os, base64  # added for title image
 
 # Brand colors
 TITLE_COLOR = "#4d9019"   # headline green
@@ -28,6 +29,21 @@ st.markdown("""
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Title image animation/hover (same feel as chatbot page) */
+  @keyframes logoFadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .im-title {
+    height: 125px;  /* tweak if you want it bigger/smaller */
+    animation: logoFadeDown 700ms ease-out 100ms both;
+    transition: transform 300ms ease, filter 300ms ease;
+  }
+  .im-title:hover {
+    transform: scale(1.08) rotate(-2deg);
+    filter: drop-shadow(0 8px 18px rgba(77, 144, 25, 0.45));
   }
 
   /* Altair container styled as a card */
@@ -130,15 +146,40 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Page title
-st.markdown(
-    f"""
-    <div style="text-align:center; margin-top: 36px;">
-      <h2 style="color:{TITLE_COLOR}; margin-bottom: 8px;">Industry Multiples</h2>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+# ---------- Title image (centered, with hover/animation) ----------
+def _img_to_data_uri(path: str) -> str:
+    with open(path, "rb") as f:
+        b = f.read()
+    return "data:image/png;base64," + base64.b64encode(b).decode("ascii")
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+_title_candidates = [
+    os.path.join(base_dir, "IndustryMultiples.png"),
+    os.path.join(os.path.dirname(base_dir), "IndustryMultiples.png"),
+    "/mnt/data/IndustryMultiples.png",
+]
+_title_path = next((p for p in _title_candidates if os.path.exists(p)), None)
+
+if _title_path:
+    _title_uri = _img_to_data_uri(_title_path)
+    st.markdown(
+        f"""
+        <div style="text-align:center; margin-top: 36px; margin-bottom: 8px;">
+          <img src="{_title_uri}" alt="Industry Multiples" class="im-title" />
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+else:
+    # Fallback to text if the image isn't found
+    st.markdown(
+        f"""
+        <div style="text-align:center; margin-top: 36px;">
+          <h2 style="color:{TITLE_COLOR}; margin-bottom: 8px;">Industry Multiples</h2>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # Data for charts
 def df_anchors():
