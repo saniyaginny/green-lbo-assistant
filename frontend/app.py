@@ -1,6 +1,7 @@
-# app.py (your Home page)
+# -*- coding: utf-8 -*-
 import streamlit as st
 from navbar import render_navbar
+import os, base64
 
 PRIMARY = "#a7c736"
 TEXT_ACCENT = "#748b4e"
@@ -8,9 +9,32 @@ TEXT_ACCENT = "#748b4e"
 st.set_page_config(page_title="Home", layout="wide")
 render_navbar()
 
-# ---- existing CSS for pills ----
+# =========================
+# Base64 helper for logo
+# =========================
+def _img_to_data_uri(path: str) -> str:
+    with open(path, "rb") as f:
+        data = f.read()
+    # Decode base64 bytes using ASCII (safe for base64)
+    b64 = base64.b64encode(data).decode("ascii")
+    return "data:image/png;base64,{}".format(b64)
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+# Ensure this file (FerneLogo.png) sits next to app.py
+logo_path = os.path.join(base_dir, "FerneLogo.png")
+logo_uri = _img_to_data_uri(logo_path)
+
+# =========================
+# Global CSS
+# =========================
 st.markdown("""
 <style>
+  /* Page background */
+  .stApp {
+    background-color: #ffffff;
+  }
+
+  /* Pills (if used elsewhere) */
   .pill-container {
     display: flex;
     justify-content: center;
@@ -19,75 +43,67 @@ st.markdown("""
   }
   .pill button {
     background: transparent !important;
-    color: %s !important;
-    border: 1px solid %s !important;
+    color: """ + PRIMARY + """ !important;
+    border: 1px solid """ + PRIMARY + """ !important;
     border-radius: 999px !important;
     font-weight: 600 !important;
     font-size: 0.95rem !important;
     padding: 6px 12px !important;
   }
   .pill button:hover {
-    background: %s !important;
+    background: """ + PRIMARY + """ !important;
     color: white !important;
   }
-</style>
-""" % (PRIMARY, PRIMARY, PRIMARY), unsafe_allow_html=True)
 
-# ---- existing hero ----
-st.markdown(
-    """
-    <style>
-    html[data-theme="light"] p.home-subtitle { color: #444; }
-    html[data-theme="dark"] p.home-subtitle { color: white; }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+  /* Hero subtitle light/dark */
+  html[data-theme="light"] p.home-subtitle { color: #444; }
+  html[data-theme="dark"]  p.home-subtitle { color: white; }
 
-st.markdown(
-    """
-    <div style="text-align:center; margin-top: 36px;">
-      <h2 style="color:#4d9019; margin-bottom: 8px;">Welcome to Green Buyout Intelligence</h2>
-      <p class="home-subtitle">Renewable-focused P2P LBO assistant. Screen targets faster and ask document-grounded questions.</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+  /* -------- Logo: Fade + Slide Down on load -------- */
+  @keyframes logoFadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero-logo {
+    height: 80px;  /* tweak size here */
+    animation: logoFadeDown 700ms ease-out 100ms both;
+    transition: transform 300ms ease, filter 300ms ease;
+  }
+  .hero-logo:hover {
+    transform: scale(1.08) rotate(-2deg);  /* bigger + slight tilt */
+    filter: drop-shadow(0 8px 18px rgba(77, 144, 25, 0.45)); /* green glow */
+  }
 
-# ---- existing card CSS ----
-st.markdown("""
-<style>
+
+  /* -------- "What you can do" card (hover lift) -------- */
   .card {
     max-width: 900px;
     margin: 0 auto;
     padding: 20px;
     border: 2px solid #4d9019;
     border-radius: 12px;
-    background: #bad4a6;
+    background: #fff;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease;
   }
-</style>
-""", unsafe_allow_html=True)
 
-# ---- existing card content ----
-st.markdown("""
-<div class="card">
-  <h4>What you can do</h4>
-  <ul>
-    <li>Upload a 10-K/10-Q and ask focused questions.</li>
-    <li>Use filters and prompts to spot LBO-ready profiles.</li>
-    <li>See cited snippets so you can trust the output.</li>
-  </ul>
-</div>
-""", unsafe_allow_html=True)
+  /* When hovering over a team card, change the team name color */
+  .team-card:hover .team-name {
+    color: #2e6b0f; /* darker green */
+    transition: color 200ms ease;
+  }
 
-# =========================
-# ADD: Meet the Team section
-# =========================
+  /* When hovering over the "What you can do" card, change the title color */
+  .card:hover h4{
+    color: #2e6b0f;
+  }
+  .card:hover {
+    transform: translateY(-4px) scale(1.02); /* lift + slight zoom */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+    border-color: #4d9019;
+  }
 
-# CSS for the team grid/cards
-st.markdown("""
-<style>
+  /* -------- Team grid + card hovers -------- */
   .team-wrap {
     max-width: 1100px;
     margin: 28px auto 0 auto;
@@ -113,29 +129,51 @@ st.markdown("""
     padding: 18px;
     border: 1px solid #eee;
     border-radius: 12px;
-    background: #fafafa;
+    background: #fff;
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease;
   }
-  .team-name {
-    margin: 0 0 4px 0;
-    color: #4d9019;
+  .team-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+    border-color: #4d9019;
   }
-  .team-role {
-    margin: 0;
-    font-weight: 500;
-    color: #444;
-  }
-  .team-link {
-    margin-top: 8px;
-  }
-  .team-link a {
-    text-decoration: none;
-    color: #0077b5; /* LinkedIn blue */
-    font-weight: 500;
-  }
+  .team-name { margin: 0 0 4px 0; color: #4d9019; }
+  .team-role { margin: 0; font-weight: 500; color: #444; }
+  .team-link { margin-top: 8px; }
+  .team-link a { text-decoration: none; color: #0077b5; font-weight: 500; }
 </style>
 """, unsafe_allow_html=True)
 
-# Content block
+# =========================
+# Hero with animated logo
+# =========================
+st.markdown(
+    """
+    <div style="text-align:center; margin-top: 36px;">
+      <img src="{0}" alt="Ferne Logo" class="hero-logo" />
+      <p class="home-subtitle">Renewable-focused P2P LBO assistant. Screen targets faster and ask document-grounded questions.</p>
+    </div>
+    """.format(logo_uri),
+    unsafe_allow_html=True
+)
+
+# =========================
+# What you can do card
+# =========================
+st.markdown("""
+<div class="card">
+  <h4>What you can do</h4>
+  <ul>
+    <li>Upload a 10-K/10-Q and ask focused questions.</li>
+    <li>Use filters and prompts to spot LBO-ready profiles.</li>
+    <li>See cited snippets so you can trust the output.</li>
+  </ul>
+</div>
+""", unsafe_allow_html=True)
+
+# =========================
+# Meet the Team
+# =========================
 st.markdown("""
 <div class="team-wrap">
   <h3 class="team-title">Meet the Team</h3>
