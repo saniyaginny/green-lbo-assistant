@@ -191,7 +191,7 @@ st.markdown("""
     <div class="team-card">
       <h4 class="team-name">Nandini Prasad</h4>
       <p class="team-role">Backend Engineer</p>
-      <p class="team-link"><a href="https://www.linkedin.com/in/nandini-prasad-395a6128a/" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
+      <p class="team-link"><a href="https://www.linkedin.com/in/nandini-prasad16/" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
     </div>
   </div>
 </div>
