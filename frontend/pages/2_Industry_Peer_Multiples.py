@@ -302,21 +302,24 @@ DIRECT_MARKER_COLORS = {
 }
 
 # Helpers
-def company_points_for_view(company_name: str, metrics: pd.Series, values_map: dict) -> pd.DataFrame:
-    if not company_name or company_name == "None":
+def company_points_for_view(company_names, metrics: pd.Series, values_map: dict) -> pd.DataFrame:
+    """Build a combined points DataFrame for multiple companies."""
+    if not company_names:
         return pd.DataFrame(columns=["Metric", "Value", "Company"])
-    m = values_map.get(company_name, {})
     rows = []
-    for metric in metrics:
-        if metric in m and m[metric] is not None:
-            rows.append((metric, float(m[metric]), company_name))
+    for company_name in company_names:
+        m = values_map.get(company_name, {})
+        for metric in metrics:
+            if metric in m and m[metric] is not None:
+                rows.append((metric, float(m[metric]), company_name))
     return pd.DataFrame(rows, columns=["Metric", "Value", "Company"])
 
 def render_range_chart(
     df: pd.DataFrame,
     x_title: str,
     company_points: pd.DataFrame | None = None,
-    company_color: str | None = None,
+    color_domain: list[str] | None = None,
+    color_range: list[str] | None = None,
 ):
     df = df.copy()
     df["Median"] = (df["Low"] + df["High"]) / 2
@@ -365,27 +368,40 @@ def render_range_chart(
 
     layers = range_rule + low_tick + high_tick + median_tick
 
-    # Optional company overlay with a subtle "glow ring"
+    # Optional company overlay with interactive legend to toggle companies
     if company_points is not None and not company_points.empty:
-        marker_color = company_color or "#d97706"
-        glow = alt.Chart(company_points).mark_point(
-            filled=True, size=400, opacity=0.18, color=marker_color
-        ).encode(
+        sel = alt.selection_point(fields=["Company"], bind="legend")
+
+        # Soft glow
+        glow = alt.Chart(company_points).mark_point(filled=True, size=400, opacity=0.18).encode(
             y=alt.Y("Metric:N", sort=df["Metric"].tolist(), title=""),
             x=alt.X("Value:Q"),
+            color=alt.Color(
+                "Company:N",
+                scale=alt.Scale(domain=color_domain, range=color_range),
+                legend=alt.Legend(title="Company")
+            ),
+            opacity=alt.condition(sel, alt.value(0.18), alt.value(0.05))
         )
-        dot = alt.Chart(company_points).mark_point(
-            filled=True, size=140, color=marker_color
-        ).encode(
+
+        # Solid dot
+        dot = alt.Chart(company_points).mark_point(filled=True, size=140).encode(
             y=alt.Y("Metric:N", sort=df["Metric"].tolist(), title=""),
             x=alt.X("Value:Q"),
+            color=alt.Color(
+                "Company:N",
+                scale=alt.Scale(domain=color_domain, range=color_range),
+                legend=None
+            ),
+            opacity=alt.condition(sel, alt.value(1.0), alt.value(0.15)),
             tooltip=[
                 alt.Tooltip("Company:N"),
                 alt.Tooltip("Metric:N"),
                 alt.Tooltip("Value:Q", format=".2f"),
             ],
         )
-        layers = layers + glow + dot
+
+        layers = (layers + glow + dot).add_params(sel)
 
     chart = layers.properties(width=1200, height=420)
     st.altair_chart(chart, use_container_width=True)
@@ -437,18 +453,20 @@ if view == "Industry Anchors":
         "the most successful and scaled companies in the industry are valued."
     )
 
-    # Company selector (anchors)
+    # Multiselect (anchors)
     pick1, pick2, pick3 = st.columns([0.3, 0.4, 0.3])
     with pick2:
-        selected_anchor = st.selectbox(
-            "Highlight company (optional)",
-            ["None"] + list(ANCHOR_COMPANY_VALUES.keys()),
-            index=0
+        anchor_options = list(ANCHOR_COMPANY_VALUES.keys())
+        selected_anchors = st.multiselect(
+            "Highlight companies (optional)",
+            anchor_options,
+            default=[]
         )
-        if selected_anchor != "None":
-            color = ANCHOR_MARKER_COLORS.get(selected_anchor, "#4d9019")
+        # Show chips for selected
+        for nm in selected_anchors:
+            color = ANCHOR_MARKER_COLORS.get(nm, "#4d9019")
             st.markdown(
-                f"<div class='selected-chip'><span class='chip-dot' style='background:{color}'></span> {selected_anchor}</div>",
+                f"<div class='selected-chip'><span class='chip-dot' style='background:{color}'></span> {nm}</div>",
                 unsafe_allow_html=True
             )
 
@@ -459,9 +477,15 @@ if view == "Industry Anchors":
             unsafe_allow_html=True
         )
         anchors_df = df_anchors()
-        overlay_df = company_points_for_view(selected_anchor, anchors_df["Metric"], ANCHOR_COMPANY_VALUES)
-        anchor_color = ANCHOR_MARKER_COLORS.get(selected_anchor) if selected_anchor != "None" else None
-        render_range_chart(anchors_df, "Range (Low to High)", company_points=overlay_df, company_color=anchor_color)
+        overlay_df = company_points_for_view(selected_anchors, anchors_df["Metric"], ANCHOR_COMPANY_VALUES)
+        color_domain = selected_anchors
+        color_range = [ANCHOR_MARKER_COLORS[c] for c in selected_anchors] if selected_anchors else None
+        render_range_chart(
+            anchors_df, "Range (Low to High)",
+            company_points=overlay_df,
+            color_domain=color_domain,
+            color_range=color_range
+        )
         render_description_card(include_price_to_book=False)
 
 else:
@@ -472,18 +496,19 @@ else:
         "stacks up against its closest competitors and to identify potential valuation gaps."
     )
 
-    # Company selector (direct comps)
+    # Multiselect (direct comps)
     pick1, pick2, pick3 = st.columns([0.3, 0.4, 0.3])
     with pick2:
-        selected_direct = st.selectbox(
-            "Highlight company (optional)",
-            ["None"] + list(DIRECT_COMPANY_VALUES.keys()),
-            index=0
+        direct_options = list(DIRECT_COMPANY_VALUES.keys())
+        selected_directs = st.multiselect(
+            "Highlight companies (optional)",
+            direct_options,
+            default=[]
         )
-        if selected_direct != "None":
-            color = DIRECT_MARKER_COLORS.get(selected_direct, "#4d9019")
+        for nm in selected_directs:
+            color = DIRECT_MARKER_COLORS.get(nm, "#4d9019")
             st.markdown(
-                f"<div class='selected-chip'><span class='chip-dot' style='background:{color}'></span> {selected_direct}</div>",
+                f"<div class='selected-chip'><span class='chip-dot' style='background:{color}'></span> {nm}</div>",
                 unsafe_allow_html=True
             )
 
@@ -494,7 +519,13 @@ else:
             unsafe_allow_html=True
         )
         comps_df = df_direct_comps()
-        overlay_df = company_points_for_view(selected_direct, comps_df["Metric"], DIRECT_COMPANY_VALUES)
-        direct_color = DIRECT_MARKER_COLORS.get(selected_direct) if selected_direct != "None" else None
-        render_range_chart(comps_df, "Range (Low to High)", company_points=overlay_df, company_color=direct_color)
+        overlay_df = company_points_for_view(selected_directs, comps_df["Metric"], DIRECT_COMPANY_VALUES)
+        color_domain = selected_directs
+        color_range = [DIRECT_MARKER_COLORS[c] for c in selected_directs] if selected_directs else None
+        render_range_chart(
+            comps_df, "Range (Low to High)",
+            company_points=overlay_df,
+            color_domain=color_domain,
+            color_range=color_range
+        )
         render_description_card(include_price_to_book=True)
