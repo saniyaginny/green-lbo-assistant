@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 import altair as alt
 import streamlit as st
@@ -10,7 +11,7 @@ ACCENT = "#88b45c"        # range bar color
 st.set_page_config(page_title="Industry Multiples", layout="wide")
 render_navbar()
 
-# --- Detect theme (light/dark) and pick axis colors accordingly ---
+# Detect theme (light/dark) and pick axis colors accordingly
 theme_base = st.get_option("theme.base") or "light"
 is_dark = str(theme_base).lower() == "dark"
 
@@ -20,7 +21,116 @@ TICK_COLOR = AXIS_LABEL_COLOR
 GRID_COLOR = "#333333" if is_dark else "#e6e6e6"
 MEDIAN_COLOR = "#e5e7eb" if is_dark else "#1f2937"   # light gray in dark mode / dark gray in light mode
 
-# ---- Page title ----
+# ---------- CSS: chart card fit + lift; centered titles; chip; description card ----------
+st.markdown("""
+<style>
+  /* Mount fade-up */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Altair container styled as a card */
+  div[data-testid="stAltairChart"],
+  div[data-testid="stVegaLiteChart"] {
+    max-width: 1200px;
+    width: 100% !important;
+    margin: 16px auto;
+    padding: 20px;
+    border: 1px solid rgba(77,144,25,0.25);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition: transform 220ms ease, box-shadow 220ms ease,
+                border-color 220ms ease, background-color 220ms ease;
+    animation: fadeUp 600ms ease both;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  div[data-testid="stAltairChart"]:hover,
+  div[data-testid="stVegaLiteChart"]:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+    border-color: #4d9019;
+    background-color: #ffffff;
+  }
+
+  /* Section title underline on hover */
+  .section-title {
+    text-align: center;
+    font-weight: 600;
+    position: relative;
+    display: inline-block;
+  }
+  .section-title::after {
+    content: "";
+    position: absolute;
+    left: 25%;
+    right: 25%;
+    bottom: -6px;
+    height: 3px;
+    background: #4d9019;
+    transform: scaleX(0);
+    transform-origin: 50% 50%;
+    transition: transform 240ms ease;
+  }
+  .section-title:hover::after { transform: scaleX(1); }
+
+  /* Selected chip (optional) */
+  .selected-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(77,144,25,0.25);
+    background: rgba(186,212,166,0.35);
+    font-weight: 600;
+    color: #2c5f10;
+    margin: 6px 0 2px 0;
+    animation: chipPulse 2200ms ease-in-out infinite;
+  }
+  @keyframes chipPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(77,144,25,0.20); }
+    50%  { box-shadow: 0 0 0 8px rgba(77,144,25,0.00); }
+    100% { box-shadow: 0 0 0 0 rgba(77,144,25,0.00); }
+  }
+  .chip-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* Description card beneath charts */
+  .desc-card {
+    max-width: 1200px;
+    width: 100%;
+    margin: 16px auto 24px auto;
+    padding: 18px 20px;
+    border: 1px solid rgba(77,144,25,0.25);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+    animation: fadeUp 600ms ease both;
+    box-sizing: border-box;
+  }
+  .desc-card:hover {
+    transform: translateY(-3px) scale(1.005);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+    border-color: #4d9019;
+  }
+  .desc-heading {
+    margin: 0 0 6px 0;
+    color: #4d9019;
+    transition: color 200ms ease;
+  }
+  .desc-card:hover .desc-heading {
+    color: #2e6b0f; /* darker green on hover */
+  }
+  .desc-list {
+    margin-top: 6px;
+  }
+</style>
+""", unsafe_allow_html=True)
+
+# Page title
 st.markdown(
     f"""
     <div style="text-align:center; margin-top: 36px;">
@@ -30,7 +140,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ---- Data for charts ----
+# Data for charts
 def df_anchors():
     data = [
         ["EV / EBITDA",                5.61, 3.77, 9.38],
@@ -52,7 +162,7 @@ def df_direct_comps():
     ]
     return pd.DataFrame(data, columns=["Metric", "Low", "Difference", "High"])
 
-# ---- Marker data (company -> metric values) ----
+# Marker data (company -> metric values)
 ANCHOR_COMPANY_VALUES = {
     "NextEra Energy": {
         "EV / EBITDA": 7.70,
@@ -134,7 +244,7 @@ DIRECT_COMPANY_VALUES = {
     },
 }
 
-# Marker colors per company (distinct palettes for each view)
+# Marker colors per company
 ANCHOR_MARKER_COLORS = {
     "NextEra Energy": "#ed582b",
     "Duke Energy": "#edb02b",
@@ -150,9 +260,8 @@ DIRECT_MARKER_COLORS = {
     "Public Service Enterprise Group": "#ed2bda",
 }
 
-# ---- Helpers ----
+# Helpers
 def company_points_for_view(company_name: str, metrics: pd.Series, values_map: dict) -> pd.DataFrame:
-    """Return a small df with columns [Metric, Value, Company] for the selected view."""
     if not company_name or company_name == "None":
         return pd.DataFrame(columns=["Metric", "Value", "Company"])
     m = values_map.get(company_name, {})
@@ -215,11 +324,17 @@ def render_range_chart(
 
     layers = range_rule + low_tick + high_tick + median_tick
 
-    # Optional company overlay
+    # Optional company overlay with a subtle "glow ring"
     if company_points is not None and not company_points.empty:
         marker_color = company_color or "#d97706"
-        company_chart = alt.Chart(company_points).mark_point(
-            color=marker_color, filled=True, size=140
+        glow = alt.Chart(company_points).mark_point(
+            filled=True, size=400, opacity=0.18, color=marker_color
+        ).encode(
+            y=alt.Y("Metric:N", sort=df["Metric"].tolist(), title=""),
+            x=alt.X("Value:Q"),
+        )
+        dot = alt.Chart(company_points).mark_point(
+            filled=True, size=140, color=marker_color
         ).encode(
             y=alt.Y("Metric:N", sort=df["Metric"].tolist(), title=""),
             x=alt.X("Value:Q"),
@@ -229,39 +344,56 @@ def render_range_chart(
                 alt.Tooltip("Value:Q", format=".2f"),
             ],
         )
-        layers = layers + company_chart
+        layers = layers + glow + dot
 
     chart = layers.properties(width=1200, height=420)
     st.altair_chart(chart, use_container_width=True)
 
-def metrics_description(include_price_to_book: bool):
-    text = """
-    **Profitability:**
-    - **EV / EBITDA** - measures a company's total value relative to its operating cash flow  
-    - **EV / Revenue** - measures a company's total value relative to its total sales  
-
-    **Leverage:**
-    - **Net Debt / EBITDA** - measures a company's debt burden relative to its operating cash flow; shows how many years of operating cash flow would be needed to pay off all of a company's net debt  
-    - **Total Debt / Total Capital** - shows how much of a company's total funding (debt and equity) is comprised of debt  
-
-    **Coverage:**
-    - **EBITDA / Interest Expense** - shows how many times a company's operating earnings can cover its annual interest payments  
-    - **Interest Coverage Ratio** - measures a company's ability to cover its interest payments with its operating earnings  
-    """
+def render_description_card(include_price_to_book: bool):
+    parts = []
+    parts.append("<div class='desc-card'>")
+    parts.append("<h4 class='desc-heading'>Profitability</h4>")
+    parts.append(
+        "<ul class='desc-list'>"
+        "<li><b>EV / EBITDA</b> - measures a company's total value relative to its operating cash flow</li>"
+        "<li><b>EV / Revenue</b> - measures a company's total value relative to its total sales</li>"
+        "</ul>"
+    )
+    parts.append("<h4 class='desc-heading'>Leverage</h4>")
+    parts.append(
+        "<ul class='desc-list'>"
+        "<li><b>Net Debt / EBITDA</b> - measures a company's debt burden relative to its operating cash flow; shows how many years of operating cash flow would be needed to pay off all of a company's net debt</li>"
+        "<li><b>Total Debt / Total Capital</b> - shows how much of a company's total funding (debt and equity) is comprised of debt</li>"
+        "</ul>"
+    )
+    parts.append("<h4 class='desc-heading'>Coverage</h4>")
+    parts.append(
+        "<ul class='desc-list'>"
+        "<li><b>EBITDA / Interest Expense</b> - shows how many times a company's operating earnings can cover its annual interest payments</li>"
+        "<li><b>Interest Coverage Ratio</b> - measures a company's ability to cover its interest payments with its operating earnings</li>"
+        "</ul>"
+    )
     if include_price_to_book:
-        text += "- **Price to Book Value** - shows how the market values a company relative to its net assets  \n"
-    st.markdown(text, unsafe_allow_html=False)
+        parts.append(
+            "<ul class='desc-list'>"
+            "<li><b>Price to Book Value</b> - shows how the market values a company relative to its net assets</li>"
+            "</ul>"
+        )
+    parts.append("</div>")
+    st.markdown("".join(parts), unsafe_allow_html=True)
 
-# ---- Top control: choose view ----
+# Top control: choose view
 left, mid, right = st.columns([0.22, 0.56, 0.22])
 with left:
     view = st.selectbox("Select section", ["Industry Anchors", "Direct Comparables"], index=0)
 
-# ---- Render per view ----
+# Render per view
 if view == "Industry Anchors":
     st.write(
-        "This chart displays the valuation multiples for our 'industry anchor' peer group. These companies are the largest and most diversified players in the renewable energy sector. "
-        "By analysing their multiples, you establish a market ceiling for valuation and gain critical context on how the most successful and scaled companies in the industry are valued."
+        "This chart displays the valuation multiples for our 'industry anchor' peer group. "
+        "These companies are the largest and most diversified players in the renewable energy sector. "
+        "By analysing their multiples, you establish a market ceiling for valuation and gain critical context on how "
+        "the most successful and scaled companies in the industry are valued."
     )
 
     # Company selector (anchors)
@@ -272,24 +404,31 @@ if view == "Industry Anchors":
             ["None"] + list(ANCHOR_COMPANY_VALUES.keys()),
             index=0
         )
+        if selected_anchor != "None":
+            color = ANCHOR_MARKER_COLORS.get(selected_anchor, "#4d9019")
+            st.markdown(
+                f"<div class='selected-chip'><span class='chip-dot' style='background:{color}'></span> {selected_anchor}</div>",
+                unsafe_allow_html=True
+            )
 
     c1, c2, c3 = st.columns([0.5, 4, 0.5])
     with c2:
         st.markdown(
-            "<h3 style='text-align:center; font-weight:600;'>Industry Anchors Valuation Ranges</h3>",
+            "<div style='text-align:center;'><h3 class='section-title'>Industry Anchors Valuation Ranges</h3></div>",
             unsafe_allow_html=True
         )
         anchors_df = df_anchors()
         overlay_df = company_points_for_view(selected_anchor, anchors_df["Metric"], ANCHOR_COMPANY_VALUES)
         anchor_color = ANCHOR_MARKER_COLORS.get(selected_anchor) if selected_anchor != "None" else None
         render_range_chart(anchors_df, "Range (Low to High)", company_points=overlay_df, company_color=anchor_color)
-        metrics_description(include_price_to_book=False)
+        render_description_card(include_price_to_book=False)
 
 else:
     st.write(
-        "To get a precise sense of a company's market value, you need to compare it to its true peers. This chart helps you do just that. "
-        "It displays the key multiples for companies that are similar in size and business model, giving you a focused and reliable valuation range. "
-        "Use this data to quickly see how a company stacks up against its closest competitors and to identify potential valuation gaps."
+        "To get a precise sense of a company's market value, you need to compare it to its true peers. "
+        "This chart helps you do just that. It displays the key multiples for companies that are similar in size and "
+        "business model, giving you a focused and reliable valuation range. Use this data to quickly see how a company "
+        "stacks up against its closest competitors and to identify potential valuation gaps."
     )
 
     # Company selector (direct comps)
@@ -300,15 +439,21 @@ else:
             ["None"] + list(DIRECT_COMPANY_VALUES.keys()),
             index=0
         )
+        if selected_direct != "None":
+            color = DIRECT_MARKER_COLORS.get(selected_direct, "#4d9019")
+            st.markdown(
+                f"<div class='selected-chip'><span class='chip-dot' style='background:{color}'></span> {selected_direct}</div>",
+                unsafe_allow_html=True
+            )
 
     c1, c2, c3 = st.columns([0.5, 4, 0.5])
     with c2:
         st.markdown(
-            "<h3 style='text-align:center; font-weight:600;'>Direct Comparables Valuation Ranges</h3>",
+            "<div style='text-align:center;'><h3 class='section-title'>Direct Comparables Valuation Ranges</h3></div>",
             unsafe_allow_html=True
         )
         comps_df = df_direct_comps()
         overlay_df = company_points_for_view(selected_direct, comps_df["Metric"], DIRECT_COMPANY_VALUES)
         direct_color = DIRECT_MARKER_COLORS.get(selected_direct) if selected_direct != "None" else None
         render_range_chart(comps_df, "Range (Low to High)", company_points=overlay_df, company_color=direct_color)
-        metrics_description(include_price_to_book=True)
+        render_description_card(include_price_to_book=True)
