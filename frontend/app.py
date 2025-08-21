@@ -206,12 +206,12 @@ st.markdown("""
   <h3 class="team-title">Meet the Team</h3>
   <div class="team-grid">
     <div class="team-card">
-      <h4 class="team-name">Rahul Jageer</h4>
+      <h5 class="team-name">Rahul Jageer</h5>
       <p class="team-role">Domain Lead</p>
       <p class="team-link"><a href="https://www.linkedin.com/in/rahul-jageer/" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
     </div>
     <div class="team-card">
-      <h4 class="team-name">Saniya Ginny</h4>
+      <h5 class="team-name">Saniya Ginny</h5>
       <p class="team-role">Frontend Engineer</p>
       <p class="team-link"><a href="https://www.linkedin.com/in/saniya-ginny/" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
     </div>
