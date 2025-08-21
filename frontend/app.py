@@ -15,7 +15,6 @@ render_navbar()
 def _img_to_data_uri(path: str) -> str:
     with open(path, "rb") as f:
         data = f.read()
-    # Decode base64 bytes using ASCII (safe for base64)
     b64 = base64.b64encode(data).decode("ascii")
     return "data:image/png;base64,{}".format(b64)
 
@@ -74,7 +73,6 @@ st.markdown("""
     filter: drop-shadow(0 8px 18px rgba(77, 144, 25, 0.45)); /* green glow */
   }
 
-
   /* -------- "What you can do" card (hover lift) -------- */
   .card {
     max-width: 900px;
@@ -98,7 +96,7 @@ st.markdown("""
     color: #2e6b0f;
   }
   .card:hover {
-    transform: translateY(-4px) scale(1.02); /* lift + slight zoom */
+    transform: translateY(-4px) scale(1.02);
     box-shadow: 0 8px 16px rgba(0,0,0,0.12);
     border-color: #4d9019;
   }
@@ -137,10 +135,39 @@ st.markdown("""
     box-shadow: 0 8px 16px rgba(0,0,0,0.12);
     border-color: #4d9019;
   }
-  .team-name { margin: 0 0 4px 0; color: #4d9019; }
-  .team-role { margin: 0; font-weight: 500; color: #444; }
-  .team-link { margin-top: 8px; }
-  .team-link a { text-decoration: none; color: #0077b5; font-weight: 500; }
+
+  /* Centered name/role/link */
+  .team-name { 
+    margin: 0 0 4px 0; 
+    color: #2b2b2b; 
+    font-weight: 500;
+    font-size: 100px;
+    text-align: center;
+  }
+  .team-role { 
+    margin: 0; 
+    font-weight: 500; 
+    color: #444; 
+    text-align: center;
+  }
+  .team-link { 
+    margin-top: 8px; 
+    text-align: center;
+  }
+  .team-link a { 
+    text-decoration: none; 
+    color: #0077b5; 
+    font-weight: 500; 
+    transition: color 200ms ease, text-decoration 200ms ease, transform 150ms ease;
+  }
+  .team-link a:hover { 
+    color: #005582; 
+    text-decoration: underline; 
+    transform: translateY(-1px);
+  }
+
+  /* Hide Streamlit's auto-inserted anchor icons on headings (safety net) */
+  h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -179,19 +206,19 @@ st.markdown("""
   <h3 class="team-title">Meet the Team</h3>
   <div class="team-grid">
     <div class="team-card">
-      <h4 class="team-name">Rahul Jageer</h4>
+      <p class="team-name">Rahul Jageer</p>
       <p class="team-role">Domain Lead</p>
       <p class="team-link"><a href="https://www.linkedin.com/in/rahul-jageer/" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
     </div>
     <div class="team-card">
-      <h4 class="team-name">Saniya Ginny</h4>
+      <p class="team-name">Saniya Ginny</p>
       <p class="team-role">Frontend Engineer</p>
       <p class="team-link"><a href="https://www.linkedin.com/in/saniya-ginny/" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
     </div>
     <div class="team-card">
-      <h4 class="team-name">Nandini Prasad</h4>
-      <p class="team-role">Backend Engineer</p>
-      <p class="team-link"><a href="https://www.linkedin.com/in/nandini-prasad16/" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
+      <p class="team-name">Nandini Prasad</p>
+      <p class="team-role">AI Engineer</p>
+      <p class="team-link"><a href="https://www.linkedin.com/in/nandini-prasad-395a6128a/" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
     </div>
   </div>
 </div>
