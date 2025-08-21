@@ -30,10 +30,12 @@ candidates = [
 title_img_path = next((p for p in candidates if os.path.exists(p)), None)
 
 # =========================
-# Global CSS for logo
+# Global CSS for logo + CHAT FONT FIX + typing animation
+# (font override copied from your second snippet)
 # =========================
 st.markdown("""
 <style>
+  /* Title/logo animation */
   @keyframes logoFadeDown {
     from { opacity: 0; transform: translateY(-12px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -47,6 +49,37 @@ st.markdown("""
     transform: scale(1.08) rotate(-2deg);
     filter: drop-shadow(0 8px 18px rgba(77, 144, 25, 0.45));
   }
+
+  /* --- FONT FIX (from your other file) --- */
+  .stChatMessageContent p,
+  .stChatMessageContent div,
+  .stChatMessageContent {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+      font-style: normal !important;
+      font-weight: normal !important;
+  }
+
+  /* --- Typing dots animation for assistant thinking --- */
+  @keyframes dotPulse {
+    0%   { transform: translateY(0); opacity: 0.35; }
+    50%  { transform: translateY(-4px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 0.35; }
+  }
+  .typing-dots {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 2px;
+  }
+  .typing-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4d9019; /* brand green */
+    animation: dotPulse 1.1s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.30s; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -150,9 +183,20 @@ else:
         with st.chat_message("user"):
             st.markdown(user_msg)
 
+        # Assistant message with typing animation while thinking
         with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                answer = ask_backend(st.session_state.doc_id, user_msg)
+            # Show typing dots immediately
+            typing_placeholder = st.empty()
+            typing_placeholder.markdown(
+                '<div class="typing-dots"><span></span><span></span><span></span></div>',
+                unsafe_allow_html=True
+            )
+
+            # Do the work (backend call)
+            answer = ask_backend(st.session_state.doc_id, user_msg)
+
+            # Replace typing dots with the real answer
+            typing_placeholder.empty()
             st.markdown(answer)
 
         st.session_state.messages.append({"role": "assistant", "content": answer})
