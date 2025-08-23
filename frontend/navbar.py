@@ -130,7 +130,7 @@ def render_navbar() -> None:
   <div class="nav-links" id="ferne-nav">
     <a href="./" data-path="./" target="_self">Home</a>
     <a href="/Chatbot" data-path="/Chatbot" target="_self">Chatbot</a>
-    <a href="/Industry_Peer_Multiples" data-path="/Industry_Peer_Multiples" target="_self">Industry Multiples</a>
+    <a href="/Industry_Peer_Multiples" data-path="/Industry_Peer_Multiples" target="_blank" rel="noopener noreferrer">Industry Multiples</a>
   </div>
 </div>
 
