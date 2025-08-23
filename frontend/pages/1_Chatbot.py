@@ -2,6 +2,8 @@
 import os
 import base64
 import requests
+import uuid
+import time
 import streamlit as st
 from navbar import render_navbar
 
@@ -30,56 +32,26 @@ candidates = [
 title_img_path = next((p for p in candidates if os.path.exists(p)), None)
 
 # =========================
-# Global CSS for logo + CHAT FONT FIX + typing animation
-# (font override copied from your second snippet)
+# Global CSS
 # =========================
 st.markdown("""
 <style>
-  /* Title/logo animation */
-  @keyframes logoFadeDown {
-    from { opacity: 0; transform: translateY(-12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .chatbot-logo {
-    height: 85px;  /* same size as Ferne logo */
-    animation: logoFadeDown 700ms ease-out 100ms both;
-    transition: transform 300ms ease, filter 300ms ease;
-  }
-  .chatbot-logo:hover {
-    transform: scale(1.08) rotate(-2deg);
-    filter: drop-shadow(0 8px 18px rgba(77, 144, 25, 0.45));
-  }
+  @keyframes logoFadeDown { from { opacity: 0; transform: translateY(-12px);} to { opacity: 1; transform: translateY(0);} }
+  .chatbot-logo { height: 85px; animation: logoFadeDown 700ms ease-out 100ms both; transition: transform 300ms ease, filter 300ms ease; }
+  .chatbot-logo:hover { transform: scale(1.08) rotate(-2deg); filter: drop-shadow(0 8px 18px rgba(77,144,25,.45)); }
 
-  /* --- FONT FIX (from your other file) --- */
+  /* Only override font family, do NOT force font-style/weight */
   .stChatMessageContent p,
   .stChatMessageContent div,
   .stChatMessageContent {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-      font-style: normal !important;
-      font-weight: normal !important;
   }
 
-  /* --- Typing dots animation for assistant thinking --- */
-  @keyframes dotPulse {
-    0%   { transform: translateY(0); opacity: 0.35; }
-    50%  { transform: translateY(-4px); opacity: 1; }
-    100% { transform: translateY(0); opacity: 0.35; }
-  }
-  .typing-dots {
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
-    padding: 6px 2px;
-  }
-  .typing-dots span {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #4d9019; /* brand green */
-    animation: dotPulse 1.1s ease-in-out infinite;
-  }
-  .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
-  .typing-dots span:nth-child(3) { animation-delay: 0.30s; }
+  @keyframes dotPulse { 0% {transform: translateY(0); opacity: .35;} 50% {transform: translateY(-4px); opacity: 1;} 100% {transform: translateY(0); opacity: .35;} }
+  .typing-dots { display: inline-flex; gap: 6px; align-items: center; padding: 6px 2px; }
+  .typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: #4d9019; animation: dotPulse 1.1s ease-in-out infinite; }
+  .typing-dots span:nth-child(2) { animation-delay: .15s; }
+  .typing-dots span:nth-child(3) { animation-delay: .30s; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -108,20 +80,31 @@ else:
     st.info("Title image not found. Place 'Chatbot.png' next to pages/1_Chatbot.py.")
 
 # =========================
-# Session state
+# Session bootstrap (persistent across pages)
 # =========================
+if "session_id" not in st.session_state:
+    qp = st.query_params
+    sid = qp.get("session_id", [None])[0] if isinstance(qp.get("session_id"), list) else qp.get("session_id")
+    if not sid:
+        sid = str(uuid.uuid4())
+        st.query_params.update({"session_id": sid})
+    st.session_state.session_id = sid
+
 if "doc_id" not in st.session_state:
     st.session_state.doc_id = None
 if "messages" not in st.session_state:
-    st.session_state.messages = []  # [{"role":"user"/"assistant","content":...}]
+    st.session_state.messages = []
+if "loaded_from_backend" not in st.session_state:
+    st.session_state.loaded_from_backend = False
 
 # =========================
-# Helpers
+# Backend helpers
 # =========================
 def upload_pdf_to_backend(file) -> str | None:
     try:
         files = {"file": (file.name, file.getvalue(), file.type or "application/pdf")}
-        r = requests.post(f"{BACKEND_URL}/api/upload", files=files, timeout=120)
+        params = {"session_id": st.session_state.session_id}
+        r = requests.post(f"{BACKEND_URL}/api/upload", files=files, params=params, timeout=120)
         r.raise_for_status()
         return r.json().get("doc_id")
     except Exception as e:
@@ -141,6 +124,57 @@ def ask_backend(doc_id: str, question: str) -> str:
     except Exception as e:
         return f"An error occurred: {e}"
 
+def load_session_from_backend():
+    if st.session_state.loaded_from_backend:
+        return
+    try:
+        r = requests.get(f"{BACKEND_URL}/api/chat/session", params={"session_id": st.session_state.session_id}, timeout=30)
+        if r.ok:
+            data = r.json()
+            if data.get("doc_id") or data.get("messages"):
+                st.session_state.doc_id = data.get("doc_id")
+                st.session_state.messages = data.get("messages", [])
+        st.session_state.loaded_from_backend = True
+    except Exception as e:
+        st.warning(f"Could not load saved session: {e}")
+
+def save_session_to_backend():
+    payload = {
+        "session_id": st.session_state.session_id,
+        "doc_id": st.session_state.doc_id,
+        "messages": st.session_state.messages,
+    }
+    try:
+        requests.post(f"{BACKEND_URL}/api/chat/session", json=payload, timeout=30)
+    except Exception as e:
+        st.warning(f"Could not save session: {e}")
+
+# =========================
+# Helpers for output
+# =========================
+def _normalize_spaces(s: str) -> str:
+    return (s.replace("\u00A0", " ")
+             .replace("\u202F", " ")
+             .replace("\u2009", " ")
+             .replace("\u200A", " ")
+             .replace("\u200B", ""))
+
+def stream_markdown(text: str, placeholder, delay: float = 0.012, step: int = 3):
+    """Gradually reveal Markdown in a placeholder to simulate typing."""
+    if not text:
+        placeholder.markdown("")
+        return
+    buf = []
+    for i, ch in enumerate(text):
+        buf.append(ch)
+        if i % step == 0:
+            placeholder.markdown("".join(buf))
+            time.sleep(delay)
+    placeholder.markdown("".join(buf))
+
+# Load any prior session
+load_session_from_backend()
+
 # =========================
 # UI: uploader
 # =========================
@@ -155,6 +189,7 @@ with cols[0]:
         if doc_id:
             st.session_state.doc_id = doc_id
             st.success("PDF indexed successfully.")
+            save_session_to_backend()
         else:
             st.session_state.doc_id = None
 
@@ -183,20 +218,25 @@ else:
         with st.chat_message("user"):
             st.markdown(user_msg)
 
-        # Assistant message with typing animation while thinking
         with st.chat_message("assistant"):
-            # Show typing dots immediately
             typing_placeholder = st.empty()
             typing_placeholder.markdown(
                 '<div class="typing-dots"><span></span><span></span><span></span></div>',
                 unsafe_allow_html=True
             )
 
-            # Do the work (backend call)
             answer = ask_backend(st.session_state.doc_id, user_msg)
+            answer = _normalize_spaces(answer)
 
-            # Replace typing dots with the real answer
             typing_placeholder.empty()
-            st.markdown(answer)
+            out = st.empty()
+            try:
+                step = 3 if len(answer) < 1200 else 6
+                stream_markdown(answer, out, delay=0.012, step=step)
+                # final clean render to fix any transient markdown artifacts
+                out.markdown(answer)
+            except Exception:
+                out.markdown(answer)
 
         st.session_state.messages.append({"role": "assistant", "content": answer})
+        save_session_to_backend()
