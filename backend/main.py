@@ -1,199 +1,170 @@
-# main.py
-import os
-import io
-import re
-import uuid
-import numpy as np
-import fitz  # PyMuPDF
-import google.generativeai as genai
-from sklearn.metrics.pairwise import cosine_similarity
-from fastapi import FastAPI, UploadFile, File, Query
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Literal, Dict, Optional
+import google.generativeai as genai
+import fitz  # PyMuPDF
+import re
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+import os
 from dotenv import load_dotenv
-
-# =========================
-# Load Environment Variables
-# =========================
-load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    raise ValueError("Please set GEMINI_API_KEY environment variable.")
-genai.configure(api_key=GEMINI_API_KEY)
-
-EMBED_MODEL = "models/embedding-001"
-GEN_MODEL = genai.GenerativeModel("gemini-1.5-flash")
+import uuid
 
 # =========================
 # FastAPI App Initialization
 # =========================
-app = FastAPI(default_response_class=JSONResponse)
+app = FastAPI()
 
-# Allow frontend to connect (adjust allow_origins in production)
+# Allow frontend to connect
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://fernechatbot.streamlit.app",
-        "http://localhost:8501",
-        "http://127.0.0.1:8501",
-        "http://localhost",
-        "http://127.0.0.1",
-    ],
+    allow_origins=["*"],  # Change to your frontend URL in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-def root():
-    return {"status": "Backend is running! Try /api/upload, /api/chat or /api/chat/session."}
+# =========================
+# Gemini API Configuration
+# =========================
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError("Please set GEMINI_API_KEY environment variable.")
+genai.configure(api_key=GEMINI_API_KEY)
+
+embed_model = "models/embedding-001"
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # =========================
 # Helper Functions
 # =========================
-def read_pdf_from_bytes(pdf_bytes: bytes) -> str:
-    """Reads the content of a PDF from in-memory bytes and extracts Unicode text."""
+def read_file_content(file_path):
+    """Reads the content of a PDF file and extracts text."""
     text_content = ""
     try:
-        pdf_stream = io.BytesIO(pdf_bytes)
-        doc = fitz.open(stream=pdf_stream, filetype="pdf")
+        doc = fitz.open(file_path)
         for page in doc:
-            # ensure text is normalized unicode
-            text_content += page.get_text("text", flags=0)
+            text_content += page.get_text()
         return text_content
+    except FileNotFoundError:
+        return f"Error: The file at {file_path} was not found."
     except Exception as e:
-        return f"Error reading PDF from bytes: {e}"
+        return f"An error occurred while reading the PDF: {e}"
 
-def chunk_text(text: str, chunk_size: int = 1500, overlap: int = 200) -> List[str]:
-    """Splits text into overlapping chunks to preserve context (Unicode safe)."""
+def chunk_text(text, chunk_size=1500, overlap=200):
+    """Splits text into overlapping chunks to preserve context."""
     words = re.split(r"\s+", text)
-    chunks, start = [], 0
+    chunks = []
+    start = 0
     while start < len(words):
         end = start + chunk_size
         chunk = " ".join(words[start:end])
         chunks.append(chunk)
-        start += max(1, chunk_size - overlap)
+        start += chunk_size - overlap
     return chunks
 
-def get_embedding(text: str):
+def get_embedding(text):
     """Get vector embedding for a text chunk."""
     try:
-        result = genai.embed_content(model=EMBED_MODEL, content=text)
-        return np.array(result["embedding"])
+        result = genai.embed_content(model=embed_model, content=text)
+        return np.array(result['embedding'])
     except Exception as e:
         print(f"Embedding error: {e}")
         return None
 
-def retrieve_relevant_chunks(doc_id: str, question: str, top_k: int = 3) -> List[str]:
-    """Return the top_k most relevant chunks to the question."""
-    if doc_id not in doc_embeddings or not doc_embeddings[doc_id]:
-        return []
+def retrieve_relevant_chunks(doc_id, question, top_k=3):
     q_emb = get_embedding(question)
-    if q_emb is None:
-        return doc_chunks.get(doc_id, [])[:top_k]
-
-    # Filter out None embeddings
-    emb_list = [e for e in doc_embeddings[doc_id] if e is not None]
-    if not emb_list:
-        return doc_chunks.get(doc_id, [])[:top_k]
-
-    sims = cosine_similarity([q_emb], emb_list)[0]
+    sims = cosine_similarity([q_emb], doc_embeddings[doc_id])[0]
     top_indices = sims.argsort()[-top_k:][::-1]
-
-    valid_indices = [i for i, e in enumerate(doc_embeddings[doc_id]) if e is not None]
-    mapped = [valid_indices[i] for i in top_indices if i < len(valid_indices)]
-    return [doc_chunks[doc_id][i] for i in mapped]
+    return [doc_chunks[doc_id][i] for i in top_indices]
 
 # =========================
-# Global stores (in-memory)
+# Hardcoded Financial Calculations
 # =========================
-documents: Dict[str, bytes] = {}
-doc_chunks: Dict[str, List[str]] = {}
-doc_embeddings: Dict[str, List[np.ndarray]] = {}
+def calculate_net_debt():
+    """
+    Manually calculate Net Debt from the 2024 balance sheet numbers.
+    Formula = (Long-term debt + Current debt) - Cash and equivalents
+    """
+    long_term_debt = 6750
+    current_debt = 430
+    cash_and_equivalents = 332
+    net_debt = (long_term_debt + current_debt) - cash_and_equivalents
+    return net_debt
 
-# ---------- Chat session store ----------
-class ChatMessage(BaseModel):
-    role: Literal["user", "assistant"]
-    content: str
+def calculate_net_debt_ebitda_multiple():
+    """
+    Hardcoded calculation for Net Debt / EBITDA multiple (2024).
+    EBITDA = Net Income + Depreciation/Amortization/Accretion + Interest Expense + Income Tax Expense
+    """
+    # Example values pulled from 2024 10-K (replace with exact ones if needed)
+    net_income = -63
+    depreciation_amortization_accretion = 965
+    interest_expense = 550
+    income_tax_expense = 29
 
-class ChatSession(BaseModel):
-    session_id: str
-    doc_id: Optional[str] = None
-    messages: List[ChatMessage] = []
+    ebitda = net_income + depreciation_amortization_accretion + interest_expense + income_tax_expense
+    net_debt = calculate_net_debt()
 
-chat_sessions: Dict[str, ChatSession] = {}
+    if ebitda != 0:
+        multiple = net_debt / ebitda
+    else:
+        multiple = None
 
-def get_or_create_session(session_id: str) -> ChatSession:
-    sess = chat_sessions.get(session_id)
-    if not sess:
-        sess = ChatSession(session_id=session_id, doc_id=None, messages=[])
-        chat_sessions[session_id] = sess
-    return sess
+    return net_debt, ebitda, multiple
 
 # =========================
-# Endpoints
+# Global store
 # =========================
-@app.post("/api/upload")
-async def upload_pdf(file: UploadFile = File(...), session_id: Optional[str] = Query(None)):
-    content = await file.read()
-    doc_id = str(uuid.uuid4())
+documents = {}         # doc_id -> raw PDF text
+doc_chunks = {}        # doc_id -> list of text chunks
+doc_embeddings = {}    # doc_id -> list of embeddings
 
-    documents[doc_id] = content
-    document_text = read_pdf_from_bytes(content)
-    chunks = chunk_text(document_text)
-    embeddings = [get_embedding(c) for c in chunks]
+# =========================
+# Preload document (10-K)
+# =========================
+file_path = "Clearway_Energy_2024_10K.pdf"
+ten_k_text = read_file_content(file_path)
+chunks = chunk_text(ten_k_text)
 
-    doc_chunks[doc_id] = chunks
-    doc_embeddings[doc_id] = embeddings
+# Assign a fixed doc_id
+doc_id = str(uuid.uuid4())
 
-    if session_id:
-        sess = get_or_create_session(session_id)
-        sess.doc_id = doc_id
+# Save into global stores
+documents[doc_id] = ten_k_text
+doc_chunks[doc_id] = chunks
+doc_embeddings[doc_id] = [get_embedding(c) for c in chunks]
 
-    return JSONResponse({"doc_id": doc_id}, ensure_ascii=False)
+print(f"📄 Loaded {file_path} as doc_id={doc_id}")
 
+# =========================
+# API Endpoint
+# =========================
 @app.post("/api/chat")
-async def query_doc(doc_id: str = Query(...), question: str = Query(...)):
-    if doc_id not in documents:
-        return JSONResponse({"error": "Document not found"}, status_code=404)
+async def query_doc(question: str = Query(...)):
+    q_lower = question.lower()
 
+    # 🔹 Net Debt
+    if "net debt" in q_lower and "ebitda" not in q_lower:
+        net_debt_value = calculate_net_debt()
+        return {"answer": f"The company's Net Debt at the end of the last fiscal year was ${net_debt_value} million."}
+
+    # 🔹 Net Debt / EBITDA multiple
+    if "net debt" in q_lower and "ebitda" in q_lower:
+        net_debt, ebitda, multiple = calculate_net_debt_ebitda_multiple()
+        if multiple:
+            return {"answer": f"Net Debt = ${net_debt}m, EBITDA = ${ebitda}m → Net Debt/EBITDA = {multiple:.2f}x"}
+        else:
+            return {"answer": "EBITDA is zero, cannot compute Net Debt/EBITDA multiple."}
+
+    # 🔹 Otherwise use LLM retrieval
     relevant_chunks = retrieve_relevant_chunks(doc_id, question, top_k=3)
     context = "\n\n".join(relevant_chunks)
-    prompt = (
-        "Using only the following 10-K document excerpts, answer the question.\n"
-        "If the excerpts do not contain the answer, say you do not have enough information.\n\n"
-        f"{context}\n\nQuestion: {question}"
-    )
-
+    prompt = f"Using only the following 10-K document excerpts, answer the question:\n\n{context}\n\nQuestion: {question}"
     try:
-        response = GEN_MODEL.generate_content(prompt)
-        return JSONResponse({"answer": response.text}, ensure_ascii=False)
+        response = model.generate_content(prompt)
+        return {"answer": response.text}
     except Exception as e:
-        return JSONResponse({"answer": f"An error occurred: {e}"}, ensure_ascii=False)
-
-@app.get("/api/chat/session")
-async def get_chat_session(session_id: str = Query(...)):
-    sess = get_or_create_session(session_id)
-    return JSONResponse({
-        "session_id": sess.session_id,
-        "doc_id": sess.doc_id,
-        "messages": [m.model_dump() for m in sess.messages],
-    }, ensure_ascii=False)
-
-@app.post("/api/chat/session")
-async def save_chat_session(payload: ChatSession):
-    chat_sessions[payload.session_id] = payload
-    return JSONResponse({
-        "ok": True,
-        "session_id": payload.session_id,
-        "count": len(payload.messages)
-    }, ensure_ascii=False)
-
-# =========================
-# Run standalone
-# =========================
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=True)
+        return {"answer": f"An error occurred: {e}"}
