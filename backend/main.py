@@ -125,9 +125,13 @@ doc_embeddings = {}    # doc_id -> list of embeddings
 # =========================
 # Preload document (10-K)
 # =========================
-file_path = "Clearway_Energy_2024_10K.pdf"
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(base_dir, "Clearway_Energy_2024_10K.pdf")
+
 ten_k_text = read_file_content(file_path)
 chunks = chunk_text(ten_k_text)
+
 
 # Assign a fixed doc_id
 doc_id = str(uuid.uuid4())
