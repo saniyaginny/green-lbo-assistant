@@ -24,7 +24,7 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 # Models
 embed_model = "models/embedding-001"
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.0-flash")
 
 # =========================
 # FastAPI App Initialization
