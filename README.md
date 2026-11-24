@@ -43,9 +43,9 @@ The project gave us practical experience in developing an AI-powered prototype, 
 
 | Team Member | Role | Contributions |
 | --- | --- | --- |
-| Saniya Ginny | Frontend Engineer | Designed and implemented the frontend, developed interactive financial charts, integrated the frontend with the backend and worked on deployment. |
-| Nandini Prasad | Backend Engineer | Developed the backend and AI document-processing functionality. |
-| Rahul Jageer | Domain Lead | Provided financial domain expertise, research and business requirements. |
+| [Saniya Ginny](https://www.linkedin.com/in/saniya-ginny/) | Frontend Engineer | Designed and implemented the frontend, developed interactive financial charts, integrated the frontend with the backend and worked on deployment. |
+| [Nandini Prasad](https://www.linkedin.com/in/nandini-prasad16/) | Backend Engineer | Developed the backend and AI document-processing functionality. |
+| [Rahul Jageer](https://www.linkedin.com/in/rjageer/) | Domain Lead | Provided financial domain expertise, research and business requirements. |
 
 ## Disclaimer
 
